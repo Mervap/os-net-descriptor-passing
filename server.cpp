@@ -37,6 +37,7 @@ fd_wrapper start_server() {
     addr.sun_family = AF_UNIX;
     strcpy(addr.sun_path, SOCKET_ADDRESS);
 
+    unlink(SOCKET_ADDRESS);
     if (bind(sfd.get(), reinterpret_cast<sockaddr *>(&addr), sizeof(addr)) == -1) {
         throw std::runtime_error("Bind failed");
     }
@@ -162,10 +163,6 @@ int main(int argc, char **argv) {
     if (argc > 2) {
         print_err("Wrong arguments, use help");
         return EXIT_FAILURE;
-    }
-
-    if (unlink(SOCKET_ADDRESS) == -1) {
-        print_err("Can't unlink the path for the socket");
     }
 
     try {
