@@ -16,7 +16,7 @@ struct fd_wrapper {
 
     fd_wrapper(const fd_wrapper &other) = delete;
 
-    fd_wrapper(fd_wrapper &&other) {
+    fd_wrapper(fd_wrapper &&other) noexcept {
         fd = other.fd;
         other.fd = -1;
     }

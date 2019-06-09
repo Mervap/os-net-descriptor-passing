@@ -18,9 +18,7 @@
 static const int LISTEN_BACKLOG = 50;
 static const int BUF_SIZE = 4096;
 
-const char *SOCKET_ADDRESS = "/tmp/2DFL35-passing-socket-descriptor";
-
-void print_err(const std::string &);
+const char *SOCKET_ADDRESS = "/tmp/09F29-passing-socket-descriptor";
 
 void send_all(int, const char *, int);
 
@@ -65,33 +63,33 @@ void echo(const fd_wrapper &reader, const fd_wrapper &writer) {
     }
 }
 
+// https://stackoverflow.com/questions/37885831/ubuntu-linux-send-file-descriptor-with-unix-domain-socket
 int send_fd(int socket, int fd) {
     msghdr socket_message{};
     iovec io_vector[1];
     cmsghdr *control_message = nullptr;
     char message_buffer[1];
 
-    /* storage space needed for an ancillary element with a paylod of length is CMSG_SPACE(sizeof(length)) */
-    char buf[CMSG_SPACE(sizeof(fd))];
-    int buf_size;
-
     /* at least one vector of one byte must be sent */
     message_buffer[0] = 'F';
     io_vector[0].iov_base = message_buffer;
     io_vector[0].iov_len = 1;
 
-    /* initialize socket message */
+    /* initialize message */
     memset(&socket_message, 0, sizeof(struct msghdr));
     socket_message.msg_iov = io_vector;
     socket_message.msg_iovlen = 1;
 
-    /* provide space for the ancillary data */
+    /* provide space for the fd data */
+    int buf_size;
+    char buf[CMSG_SPACE(sizeof(fd))];
+
     buf_size = CMSG_SPACE(sizeof(fd));
     memset(buf, 0, buf_size);
     socket_message.msg_control = buf;
     socket_message.msg_controllen = buf_size;
 
-    /* initialize a single ancillary data element for fd passing */
+    /* initialize data element for fd passing */
     control_message = CMSG_FIRSTHDR(&socket_message);
     control_message->cmsg_level = SOL_SOCKET;
     control_message->cmsg_type = SCM_RIGHTS;
@@ -167,7 +165,7 @@ int main(int argc, char **argv) {
     }
 
     if (unlink(SOCKET_ADDRESS) == -1) {
-        print_err("Could not delete socket");
+        print_err("Can't unlink the path for the socket");
     }
 
     try {

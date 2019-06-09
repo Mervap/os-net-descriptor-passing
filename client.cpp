@@ -16,9 +16,7 @@
 
 static const int BUF_SIZE = 4096;
 
-const char *SOCKET_ADDRESS = "/tmp/2DFL35-passing-socket-descriptor";
-
-void print_err(const std::string &);
+const char *SOCKET_ADDRESS = "/tmp/09F29-passing-socket-descriptor";
 
 void send_all(int, const char *, int);
 
@@ -71,6 +69,7 @@ void send_and_receive(const fd_wrapper &reader, const fd_wrapper &writer, std::s
     }
 }
 
+// https://stackoverflow.com/questions/37885831/ubuntu-linux-send-file-descriptor-with-unix-domain-socket
 int recv_fd(int socket) {
 
     int fd, buf_size;
@@ -80,18 +79,18 @@ int recv_fd(int socket) {
     char message_buffer[1];
     char buf[CMSG_SPACE(sizeof(fd))];
 
-    /* start clean */
+    /* clean */
     memset(&socket_message, 0, sizeof(msghdr));
     buf_size = CMSG_SPACE(sizeof(fd));
     memset(buf, 0, buf_size);
 
-    /* setup a place to fill in message contents */
+    /* space for message */
     io_vector[0].iov_base = message_buffer;
     io_vector[0].iov_len = 1;
     socket_message.msg_iov = io_vector;
     socket_message.msg_iovlen = 1;
 
-    /* provide space for the ancillary data */
+    /* space for the fd data */
     socket_message.msg_control = buf;
     socket_message.msg_controllen = buf_size;
 
@@ -119,7 +118,7 @@ int recv_fd(int socket) {
         }
     }
 
-    throw std::runtime_error("Control message is empty");
+    throw std::runtime_error("Fd was not transmitted");
 }
 
 int main(int argc, char **argv) {
